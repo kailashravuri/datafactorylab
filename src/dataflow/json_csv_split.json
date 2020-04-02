@@ -1,0 +1,42 @@
+{
+	"name": "json_csv_split",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "weather_json_input",
+						"type": "DatasetReference"
+					},
+					"name": "weatherjsoninput"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "id_delimites_text",
+						"type": "DatasetReference"
+					},
+					"name": "sinkidcsv"
+				},
+				{
+					"dataset": {
+						"referenceName": "SinkDateCsv",
+						"type": "DatasetReference"
+					},
+					"name": "dateCsv"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Selectid"
+				},
+				{
+					"name": "SelectDate"
+				}
+			],
+			"script": "source(output(\n\t\tid as string,\n\t\tdate as string,\n\t\tdateint as string,\n\t\tairport as string,\n\t\ttemp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false) ~> weatherjsoninput\nweatherjsoninput select(mapColumn(\n\t\tid,\n\t\tdate,\n\t\tdateint,\n\t\tairport,\n\t\ttemp\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Selectid\nweatherjsoninput select(mapColumn(\n\t\tid,\n\t\tdate,\n\t\tdateint,\n\t\tairport,\n\t\ttemp\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectDate\nSelectid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkidcsv\nSelectDate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> dateCsv"
+		}
+	}
+}
