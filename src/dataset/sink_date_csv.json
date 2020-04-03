@@ -10,7 +10,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"fileName": "date.csn",
 				"folderPath": "csv",
 				"container": "output"
 			},
