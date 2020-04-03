@@ -36,7 +36,7 @@
 					"name": "SelectDate"
 				}
 			],
-			"script": "source(output(\n\t\tid as string,\n\t\tdate as string,\n\t\tdateint as string,\n\t\tairport as string,\n\t\ttemp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsingleDocument: true) ~> weatherjsoninput\nweatherjsoninput select(mapColumn(\n\t\tid,\n\t\tdate,\n\t\tdateint,\n\t\tairport,\n\t\ttemp\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Selectid\nweatherjsoninput select(mapColumn(\n\t\tid,\n\t\tdate,\n\t\tdateint,\n\t\tairport,\n\t\ttemp\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectDate\nSelectid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkidcsv\nSelectDate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> dateCsv"
+			"script": "source(output(\n\t\tid as string,\n\t\tdate as string,\n\t\tdateint as string,\n\t\tairport as string,\n\t\ttemp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsingleDocument: true) ~> weatherjsoninput\nweatherjsoninput select(mapColumn(\n\t\tid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Selectid\nweatherjsoninput select(mapColumn(\n\t\tdate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectDate\nSelectid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkidcsv\nSelectDate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> dateCsv"
 		}
 	}
 }
