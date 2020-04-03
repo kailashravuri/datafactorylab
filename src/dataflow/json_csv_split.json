@@ -22,7 +22,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "SinkDateCsv",
+						"referenceName": "sink_date_csv",
 						"type": "DatasetReference"
 					},
 					"name": "dateCsv"

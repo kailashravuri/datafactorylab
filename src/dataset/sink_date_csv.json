@@ -1,5 +1,5 @@
 {
-	"name": "SinkDateCsv",
+	"name": "sink_date_csv",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "datafactorysamplesservice",
@@ -10,11 +10,13 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
+				"fileName": "date.csn",
 				"folderPath": "csv",
 				"container": "output"
 			},
 			"columnDelimiter": ",",
 			"escapeChar": "\\",
+			"firstRowAsHeader": true,
 			"quoteChar": "\""
 		},
 		"schema": []
