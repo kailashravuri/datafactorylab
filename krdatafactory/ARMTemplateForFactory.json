@@ -41,7 +41,13 @@
 								"parameters": {},
 								"datasetParameters": {
 									"weatherjsoninput": {},
-									"sinkidcsv": {},
+									"sinkidcsv": {
+										"ContainerName": {
+											"value": "@pipeline().parameters.OutputContainerName",
+											"type": "Expression"
+										},
+										"ChildFolderName": "csv"
+									},
 									"dateCsv": {}
 								}
 							},
@@ -53,6 +59,11 @@
 						}
 					}
 				],
+				"parameters": {
+					"OutputContainerName": {
+						"type": "String"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
