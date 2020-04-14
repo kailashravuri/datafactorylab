@@ -1,0 +1,240 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "krdatafactory"
+		},
+		"datafactorysamplesservice_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'datafactorysamplesservice'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/datafactorysamplesservice')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('datafactorysamplesservice_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/id_delimites_text')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "datafactorysamplesservice",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"ContainerName": {
+						"type": "string",
+						"defaultValue": "output"
+					},
+					"ChildFolderName": {
+						"type": "string",
+						"defaultValue": "csv"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().ChildFolderName",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().ContainerName",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/datafactorysamplesservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sink_date_csv')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "datafactorysamplesservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": "csv",
+						"container": "output"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/datafactorysamplesservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/weather_json_input')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "datafactorysamplesservice",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "http-source-weather.json",
+						"container": "input"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"id": {
+							"type": "string"
+						},
+						"date": {
+							"type": "string"
+						},
+						"dateint": {
+							"type": "integer"
+						},
+						"airport": {
+							"type": "string"
+						},
+						"temp": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/datafactorysamplesservice')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/json_csv_split')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "weather_json_input",
+								"type": "DatasetReference"
+							},
+							"name": "weatherjsoninput"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "id_delimites_text",
+								"type": "DatasetReference"
+							},
+							"name": "sinkidcsv"
+						},
+						{
+							"dataset": {
+								"referenceName": "sink_date_csv",
+								"type": "DatasetReference"
+							},
+							"name": "dateCsv"
+						}
+					],
+					"transformations": [
+						{
+							"name": "Selectid"
+						},
+						{
+							"name": "SelectDate"
+						}
+					],
+					"script": "source(output(\n\t\tid as string,\n\t\tdate as string,\n\t\tdateint as string,\n\t\tairport as string,\n\t\ttemp as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tsingleDocument: true) ~> weatherjsoninput\nweatherjsoninput select(mapColumn(\n\t\tid\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> Selectid\nweatherjsoninput select(mapColumn(\n\t\tdate\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SelectDate\nSelectid sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sinkidcsv\nSelectDate sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> dateCsv"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/weather_json_input')]",
+				"[concat(variables('factoryId'), '/datasets/id_delimites_text')]",
+				"[concat(variables('factoryId'), '/datasets/sink_date_csv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/copy_json_to_individual_csv')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "json_csv_split",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "json_csv_split",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"weatherjsoninput": {},
+									"sinkidcsv": {},
+									"dateCsv": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							}
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/json_csv_split')]"
+			]
+		}
+	]
+}
