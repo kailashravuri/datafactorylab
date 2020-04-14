@@ -17,7 +17,16 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "json_csv_split",
-						"type": "DataFlowReference"
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"sinkidcsv": {
+								"ContainerName": {
+									"value": "@pipeline().parameters.OutputContainerName",
+									"type": "Expression"
+								},
+								"ChildFolderName": "csv"
+							}
+						}
 					},
 					"compute": {
 						"coreCount": 8,
@@ -26,6 +35,11 @@
 				}
 			}
 		],
+		"parameters": {
+			"OutputContainerName": {
+				"type": "String"
+			}
+		},
 		"annotations": []
 	}
 }
