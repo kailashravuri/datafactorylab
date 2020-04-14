@@ -9,6 +9,10 @@
 			"ContainerName": {
 				"type": "string",
 				"defaultValue": "output"
+			},
+			"ChildFolderName": {
+				"type": "string",
+				"defaultValue": "csv"
 			}
 		},
 		"annotations": [],
@@ -16,7 +20,10 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
-				"folderPath": "csv",
+				"folderPath": {
+					"value": "@dataset().ChildFolderName",
+					"type": "Expression"
+				},
 				"container": {
 					"value": "@dataset().ContainerName",
 					"type": "Expression"
